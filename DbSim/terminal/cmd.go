@@ -9,48 +9,50 @@ import (
 )
 
 type Terminal struct {
+	SetAtr map[string]interface{}
 }
 
-func (t Terminal) setCmd(atr []string) {
+/*
+* Функция-метод считается завершенной
+ */
+func (t *Terminal) setCmd(atr []string) {
 	if len(atr) != 3 {
 		return
 	}
 
 	name, varType, valueStr := atr[0], strings.ToUpper(atr[1]), atr[2]
 
-	res := map[string]interface{}{
-		"name": name,
-	}
+	t.SetAtr["name"] = name
 	switch varType {
 	case "INT":
 		val, err := strconv.ParseInt(valueStr, 10, 32)
 		if err != nil {
 			return
 		}
-		res["type"] = "INT"
-		res["value"] = val
+		t.SetAtr["type"] = "INT"
+		t.SetAtr["value"] = val
 
 	case "FLOAT":
 		val, err := strconv.ParseFloat(valueStr, 64)
 		if err != nil {
 			return
 		}
-		res["type"] = "FLOAT"
-		res["value"] = val
+		t.SetAtr["type"] = "FLOAT"
+		t.SetAtr["value"] = val
 
 	case "STRING":
 		val := valueStr
-		res["type"] = "STRING"
-		res["value"] = val
+		t.SetAtr["type"] = "STRING"
+		t.SetAtr["value"] = val
 
 	default:
 		return
 	}
 
 	fmt.Printf("По результатам команды SET получены следующие данные: %s = %v (%s)\n",
-		res["name"],
-		res["value"],
-		res["type"],
+		t.SetAtr["name"],
+		t.SetAtr["value"],
+		t.SetAtr["type"],
 	)
 }
 
