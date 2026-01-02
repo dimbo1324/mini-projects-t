@@ -9,12 +9,13 @@ import (
 )
 
 type Terminal struct {
-	SetAtr map[string]interface{}
+	SetAtr    map[string]interface{}
+	ObjectAtr map[string]interface{}
 }
 
 /*
-* Функция-метод считается завершенной
- */
+TODO: +
+*/
 func (t *Terminal) setCmd(atr []string) {
 	if len(atr) != 3 {
 		return
@@ -56,6 +57,23 @@ func (t *Terminal) setCmd(atr []string) {
 	)
 }
 
+func (t *Terminal) objectCmd(atr []string) {
+	if len(atr) != 2 {
+		return
+	}
+
+	name, count := atr[0], atr[1]
+
+	val, err := strconv.ParseInt(count, 10, 32)
+	if err != nil || (val < 1 && val > 20) {
+		return
+	}
+
+	t.ObjectAtr["name"] = name
+	t.ObjectAtr["count"] = count
+
+}
+
 func (t Terminal) stringPreparator(str string) string {
 	sep, words := " ", strings.Fields(str)
 	return strings.Join(words, sep)
@@ -74,7 +92,7 @@ func (t Terminal) Parser(cmd string) {
 	case "SET":
 		t.setCmd(words[1:])
 	case "OBJECT":
-		fmt.Println("OBJECT")
+		t.objectCmd(words[1:])
 	case "PUSH":
 		fmt.Println("PUSH")
 	case "MERGE":
