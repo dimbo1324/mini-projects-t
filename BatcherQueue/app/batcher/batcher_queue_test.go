@@ -9,10 +9,6 @@ import (
 	"time"
 )
 
-//
-// === BASIC FLUSH BEHAVIOR ===
-//
-
 func TestFlush_WhenBatchIsFull(t *testing.T) {
 	t.Parallel()
 
@@ -22,7 +18,6 @@ func TestFlush_WhenBatchIsFull(t *testing.T) {
 	)
 
 	handler := func(batch []int) {
-		// Копируем содержимое, чтобы сохранить снимок батча
 		mu.Lock()
 		defer mu.Unlock()
 
@@ -32,7 +27,6 @@ func TestFlush_WhenBatchIsFull(t *testing.T) {
 	b := NewBatcher(3, 10*time.Second, handler)
 	t.Cleanup(b.Close)
 
-	// Добавляем 3 элемента → должен быть автоматический flush
 	b.Add(1)
 	b.Add(2)
 	b.Add(3)
@@ -76,7 +70,6 @@ func TestFlush_WhenTimeoutExpires(t *testing.T) {
 
 	select {
 	case <-flushed:
-		// всё хорошо
 	case <-time.After(500 * time.Millisecond):
 		t.Fatal("flush by timeout did not happen")
 	}
@@ -106,7 +99,7 @@ func TestBatcher_NeverExceedsCapacity(t *testing.T) {
 	b := NewBatcher(batchSize, 500*time.Millisecond, handler)
 	t.Cleanup(b.Close)
 
-	b.Add(1, 2, 3, 4, 5, 6, 7) // больше чем один батч
+	b.Add(1, 2, 3, 4, 5, 6, 7)
 	time.Sleep(600 * time.Millisecond)
 
 	mu.Lock()
@@ -116,7 +109,6 @@ func TestBatcher_NeverExceedsCapacity(t *testing.T) {
 		t.Fatalf("expected 3 flushes, got %d", len(calls))
 	}
 
-	// Проверяем, что батчи не превышают заданный размер
 	for _, batch := range calls {
 		if len(batch) > batchSize {
 			t.Fatalf("batch exceeded capacity: %v", batch)
@@ -124,14 +116,9 @@ func TestBatcher_NeverExceedsCapacity(t *testing.T) {
 	}
 }
 
-//
-// === CORNER CASES ===
-//
-
 func TestFlush_NothingAdded(t *testing.T) {
 	t.Parallel()
 
-	// Проверяем, что обработчик не вызывается, если ничего не добавлялось
 	called := false
 	b := NewBatcher(3, 50*time.Millisecond, func(_ []string) {
 		called = true
@@ -157,7 +144,6 @@ func TestFlush_ContextCancellation(t *testing.T) {
 	}
 	b := NewBatcher(5, time.Second, handler)
 
-	// Закрытие по таймеру
 	go func() {
 		<-ctx.Done()
 		b.Close()
@@ -169,10 +155,6 @@ func TestFlush_ContextCancellation(t *testing.T) {
 		t.Fatalf("should not flush — expected to be canceled before timeout reached")
 	}
 }
-
-//
-// === HIGH LOAD ===
-//
 
 func TestFlush_MultipleBatches(t *testing.T) {
 	t.Parallel()
@@ -227,10 +209,6 @@ func TestFlush_MultipleBatches(t *testing.T) {
 	}
 }
 
-//
-// === GRACEFUL SHUTDOWN ===
-//
-
 func TestShutdown_FlushesRemainingItems(t *testing.T) {
 	t.Parallel()
 
@@ -253,7 +231,7 @@ func TestShutdown_FlushesRemainingItems(t *testing.T) {
 	b.Add("y")
 
 	time.Sleep(20 * time.Millisecond)
-	b.Close() // Закрытие должно вызвать flush
+	b.Close()
 
 	mu.Lock()
 	defer mu.Unlock()
@@ -274,7 +252,7 @@ func TestShutdown_WaitsForHandler(t *testing.T) {
 	)
 
 	handler := func(items []int) {
-		time.Sleep(100 * time.Millisecond) // Симулируем долгую обработку
+		time.Sleep(100 * time.Millisecond)
 
 		mu.Lock()
 		called = true
@@ -290,7 +268,7 @@ func TestShutdown_WaitsForHandler(t *testing.T) {
 
 	time.Sleep(10 * time.Millisecond)
 
-	b.Close() // Должен дождаться окончания handler
+	b.Close()
 
 	mu.Lock()
 	defer mu.Unlock()
