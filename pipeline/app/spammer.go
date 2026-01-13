@@ -39,7 +39,7 @@ func SelectMessages(in, out chan any) {
 	var wg sync.WaitGroup
 	worker := func(usersBatch []User) {
 		defer wg.Done()
-		msgs, err := GetMessages(usersBatch...) //? что это
+		msgs, err := GetMessages(usersBatch...)
 		if err != nil {
 			_ = fmt.Sprintf("GetMessages error: %v", err)
 			return
@@ -75,6 +75,29 @@ func SelectMessages(in, out chan any) {
 }
 
 func CheckSpam(in, out chan any) {
+	sem := make(chan struct{}, HasSpamMaxAsyncRequests)
+	var wg sync.WaitGroup
+	for raw := range in {
+		id, ok := raw.(MsgID)
+		if !ok {
+			continue
+		}
+		wg.Add(1)
+		go func(m MsgID) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			has, err := HasSpam(m)
+			if err != nil {
+				return
+			}
+			out <- MsgData{ID: m, HasSpam: has}
+		}(id)
+	}
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
 }
 
 func CombineResults(in, out chan any) {
