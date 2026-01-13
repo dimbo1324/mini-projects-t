@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-// Поскольку мы еще не работали с тестами в Go,
-// то скорее всего вам будет проще отладить вашу программу в main.
 func main() {
 	inputData := []string{
 		"harry.dubois@mail.ru",
@@ -16,10 +14,10 @@ func main() {
 		"d.vader@mail.ru",
 		"noname@mail.ru",
 		"e.musk@mail.ru",
-		"spiderman@mail.ru", // is an alias for peter.parker@mail.ru
+		"spiderman@mail.ru",
 		"red_prince@mail.ru",
 		"tomasangelo@mail.ru",
-		"batman@mail.ru", // is an alias for bruce.wayne@mail.ru
+		"batman@mail.ru",
 		"bruce.wayne@mail.ru",
 	}
 
@@ -85,7 +83,6 @@ func main() {
 	}
 }
 
-// инициализация джобы, которая просто выплюнет в out подряд все из слайса строк strs
 func newCatStrings(strs []string, pauses time.Duration) func(in, out chan interface{}) {
 	return func(in, out chan interface{}) {
 		for _, email := range strs {
@@ -97,7 +94,6 @@ func newCatStrings(strs []string, pauses time.Duration) func(in, out chan interf
 	}
 }
 
-// инициализация джобы, которая считает из in все строки, пока канал не закроется. и положит все в strs
 func newCollectStrings(strs *[]string) func(in, out chan interface{}) {
 	return func(in, out chan interface{}) {
 		for dataRaw := range in {

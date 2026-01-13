@@ -2,10 +2,17 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 )
 
 func RunPipeline(cmds ...cmd) {
+	var in chan any
+	for _, command := range cmds {
+		out := make(chan any)
+		go command(in, out)
+		in = out
+	}
 }
 
 func SelectUsers(in, out chan any) {
@@ -101,4 +108,23 @@ func CheckSpam(in, out chan any) {
 }
 
 func CombineResults(in, out chan any) {
+	res := make([]MsgData, 0)
+	for raw := range in {
+		md, ok := raw.(MsgData)
+		if !ok {
+			continue
+		}
+		res = append(res, md)
+	}
+	sort.Slice(res, func(i int, j int) bool {
+
+		if res[i].HasSpam != res[j].HasSpam {
+			return res[i].HasSpam
+		}
+		return res[i].ID < res[j].ID
+	})
+	for _, r := range res {
+		out <- fmt.Sprintf("%t %d", r.HasSpam, r.ID)
+	}
+	close(out)
 }
