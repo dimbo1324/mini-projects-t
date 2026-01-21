@@ -29,7 +29,7 @@ func (db *DataBase) Close() {
 	}
 }
 
-func (db *DataBase) UpsetrConfig(cfg models.Config) (bool, error) {
+func (db *DataBase) UpsertConfig(cfg models.Config) (bool, error) {
 	query := `
 		INSERT INTO postgres.configs (name, description, version, author, tags)
 		VALUES ($1, $2, $3, $4, $5)

@@ -1,6 +1,5 @@
 package models
 
-// Config - общая модель файлов (конфигов)
 type Config struct {
 	Name        string
 	Description string
@@ -9,11 +8,10 @@ type Config struct {
 	Tags        []string
 }
 
-// Schema - модель описания JSON схемы (поле->путь)
 type Schema struct {
-	Name        string
-	Description string
-	Version     string
-	Author      string
-	Tags        string
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
+	Version     string `yaml:"version"`
+	Author      string `yaml:"author"`
+	Tags        string `yaml:"tags"`
 }
