@@ -2,6 +2,10 @@ package main
 
 import (
 	"flag"
+	"log"
+	"mycli/internal/app"
+	"mycli/internal/config"
+	"mycli/internal/db"
 )
 
 var flags struct {
@@ -17,5 +21,28 @@ func init() {
 const postgresqlConnString = "postgres://user:password@localhost:5432/postgres"
 
 func main() {
-	// Инициализация
+	flag.Parse()
+
+	if flags.ConfigPath == "" || flags.DirectoryPath == "" {
+		log.Fatal("Both -c and -d flags are required")
+	}
+
+	database, err := db.NewClient(postgresqlConnString)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer database.Close()
+
+	schemas, err := config.LoadConfig(flags.ConfigPath)
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	processor := app.NewProcessor(database, schemas)
+
+	log.Println("Starting processing...")
+	if err := processor.ProcessDirectory(flags.DirectoryPath); err != nil {
+		log.Fatalf("Processing failed: %v", err)
+	}
+	log.Println("Done.")
 }
